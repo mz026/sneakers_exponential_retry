@@ -1,8 +1,6 @@
 # SneakersExponentialRetry
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/sneakers_exponential_retry`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Exponential Retry Handler for [Sneakers](https://github.com/jondot/sneakers) that just works.
 
 ## Installation
 
@@ -22,7 +20,38 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Configure your Sneakers by the following:
+
+```ruby
+require 'sneakers_exponential_retry'
+
+Sneakers.configure :handler => SneakersExponentialRetry,
+                   :handler_options => {
+                     :max_retry_count => 3,
+                     :logger => Sneakers.logger
+                   },
+                   :exchange => 'MyExchangeName',
+                   :exchange_type => :topic
+```
+
+## Options:
+
+- `exchange`: Exchange name to be used, required for `SneakersExponentialRetry`
+- `handler_options`:
+  - `max_retry_count`: (optional) Max retry count, default to 14
+  - `logger`: (optional) logger instance, default to nil, which would not log anything related to retrying.
+
+## How it works:
+
+TODO
+
+## Testing:
+
+Run tests by:
+
+```
+$ bundle exec rspec
+```
 
 ## Development
 
@@ -32,5 +61,5 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/sneakers_exponential_retry. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/mz026/sneakers_exponential_retry. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
