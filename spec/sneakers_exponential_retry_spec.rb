@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe SneakersExponentialRetry do
+describe SneakersExponentialRetry::Handler do
   let(:channel) do
     double(:channel, :exchange => mock_retry_exchange,
                      :queue => mock_retry_queue)
@@ -22,7 +22,7 @@ describe SneakersExponentialRetry do
         type: 'topic',
         durable: true
       )
-      ExponentialRetry.new(channel, queue, opts)
+      SneakersExponentialRetry::Handler.new(channel, queue, opts)
     end
 
     it 'creates a retry queue' do
@@ -33,7 +33,7 @@ describe SneakersExponentialRetry do
           :'x-dead-letter-exchange' => opts[:exchange]
         }
       )
-      ExponentialRetry.new(channel, queue, opts)
+      SneakersExponentialRetry::Handler.new(channel, queue, opts)
     end
 
     it 'binds the retry queue with the retry exchange' do
@@ -41,7 +41,7 @@ describe SneakersExponentialRetry do
         mock_retry_exchange,
         routing_key: '#'
       )
-      ExponentialRetry.new(channel, queue, opts)
+      SneakersExponentialRetry::Handler.new(channel, queue, opts)
     end
   end
 
@@ -54,7 +54,7 @@ describe SneakersExponentialRetry do
     end
     let(:msg) { "the-message" }
     let(:err) { nil }
-    let(:handler) { ExponentialRetry.new(channel, queue, opts) }
+    let(:handler) { SneakersExponentialRetry::Handler.new(channel, queue, opts) }
     let(:logger) { double(:logger, info: nil) }
 
     before :each do
@@ -71,7 +71,7 @@ describe SneakersExponentialRetry do
             'retry-count' => retry_count + 1
           },
           routing_key: hdr.routing_key,
-          expiration: (2 ** retry_count) * ExponentialRetry::MINUTE
+          expiration: (2 ** retry_count) * SneakersExponentialRetry::Handler::MINUTE
         })
         handler.error(hdr, props, msg, err)
       end
@@ -103,7 +103,7 @@ describe SneakersExponentialRetry do
     context "if retry-count reaches the given max_retry_count" do
       let(:max_retry_count) { 10 }
       let(:handler) do
-        ExponentialRetry.new(channel, queue, {
+        SneakersExponentialRetry::Handler.new(channel, queue, {
           handler_options: {
             max_retry_count: max_retry_count
           }
@@ -127,7 +127,7 @@ describe SneakersExponentialRetry do
     let(:hdr) { double(:hdr, delivery_tag: 'the-delivery-tag') }
     let(:msg) { "the-message" }
     let(:err) { nil }
-    let(:handler) { ExponentialRetry.new(channel, queue, opts) }
+    let(:handler) { SneakersExponentialRetry::Handler.new(channel, queue, opts) }
     it 'delegate to channel' do
       expect(channel).to receive(opts[:delegate]).with(hdr.delivery_tag, false)
       handler.public_send(opts[:method_name], hdr, props, msg)

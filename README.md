@@ -25,7 +25,7 @@ Configure your Sneakers by the following:
 ```ruby
 require 'sneakers_exponential_retry'
 
-Sneakers.configure :handler => SneakersExponentialRetry,
+Sneakers.configure :handler => SneakersExponentialRetry::Handler,
                    :handler_options => {
                      :max_retry_count => 3,
                      :logger => Sneakers.logger
