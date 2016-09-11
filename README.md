@@ -43,7 +43,22 @@ Sneakers.configure :handler => SneakersExponentialRetry,
 
 ## How it works:
 
-TODO
+`SneakersExponentialRetry` handles the behavior of retrying failed jobs exponentially by:
+
+1. On initializing:
+  - Create a retry exchange, which is named as `#{queue_name}-retry-ex`
+  - Create a retry queue, which is named as `#{queue_name}-retry-queue`
+    - Set the `x-dead-letter-exchange` of retry queue to the original job exchange
+  - Bind the retry queue to the retry exchange
+
+2. Whenever a job fails, `SneakersExponentialRetry` would:
+  - if retry count <= `max_retry_count`
+    - publish the job to retry exchange, with an exponential expiration timeout
+    - the retry exchange would push the job into our retry queue
+    - after the timeout, the job would be published back to the `dead-letter-exchange` of the retry queue, which is our original exchange, so that the job would be retried
+
+  - if retry count > `max_retry_count`
+    - reject the job
 
 ## Testing:
 
