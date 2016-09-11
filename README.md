@@ -2,22 +2,6 @@
 
 Exponential Retry Handler for [Sneakers](https://github.com/jondot/sneakers) that just works.
 
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'sneakers_exponential_retry'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install sneakers_exponential_retry
-
 ## Usage
 
 Configure your Sneakers by the following:
@@ -41,7 +25,27 @@ Sneakers.configure :handler => SneakersExponentialRetry::Handler,
   - `max_retry_count`: (optional) Max retry count, default to 14
   - `logger`: (optional) logger instance, default to nil, which would not log anything related to retrying.
 
+
+## Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'sneakers_exponential_retry'
+```
+
+And then execute:
+
+    $ bundle
+
+Or install it yourself as:
+
+    $ gem install sneakers_exponential_retry
+
+
 ## How it works:
+
+(`SneakersExponentialRetry` is inspired by [this blogpost](https://gagnechris.wordpress.com/2015/09/19/easy-retries-with-rabbitmq/))
 
 `SneakersExponentialRetry` handles the behavior of retrying failed jobs exponentially by:
 
