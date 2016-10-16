@@ -1,3 +1,5 @@
+[![Code Climate](https://codeclimate.com/github/mz026/sneakers_exponential_retry/badges/gpa.svg)](https://codeclimate.com/github/mz026/sneakers_exponential_retry)
+
 # SneakersExponentialRetry
 
 Exponential Retry Handler for [Sneakers](https://github.com/jondot/sneakers) that just works.
