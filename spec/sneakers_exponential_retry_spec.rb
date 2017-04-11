@@ -45,7 +45,7 @@ describe SneakersExponentialRetry::Handler do
     end
   end
 
-  describe '#error(hdr, props, msg, err)' do
+  shared_context "after_processing_task" do
     let(:props) { { headers: {} } }
     let(:hdr) do
       double(:hdr,
@@ -61,43 +61,57 @@ describe SneakersExponentialRetry::Handler do
       allow(mock_retry_exchange).to receive(:publish)
       allow(channel).to receive(:acknowledge)
     end
+  end
 
-    shared_examples "retry_error_behaviors" do |options|
-      retry_count = options[:retry_count]
+  shared_examples "retry_error_behaviors" do |options|
+    retry_count = options[:retry_count]
+    method_name = options[:method_name]
 
-      it 'publish the message via retry exchange with retry-count and expiration' do
-        expect(mock_retry_exchange).to receive(:publish).with(msg, {
-          headers: {
-            'retry-count' => retry_count + 1
-          },
-          routing_key: hdr.routing_key,
-          expiration: (2 ** retry_count) * SneakersExponentialRetry::Handler::MINUTE
-        })
-        handler.error(hdr, props, msg, err)
-      end
-      it 'acknowledge the message' do
-        expect(channel).to receive(:acknowledge).with(hdr.delivery_tag, false)
-        handler.error(hdr, props, msg, err)
-      end
-      it 'logs the retry' do
-        opts[:handler_options] = { logger: logger }
-        expect(logger).to receive(:info) do |&block|
-          msg = block.call
-          expect(msg).to eq("retry_count: #{retry_count + 1}")
-        end
-        handler.error(hdr, props, msg, err)
-      end
+    it 'publish the message via retry exchange with retry-count and expiration' do
+      expect(mock_retry_exchange).to receive(:publish).with(msg, {
+        headers: {
+          'retry-count' => retry_count + 1
+        },
+        routing_key: hdr.routing_key,
+        expiration: (2 ** retry_count) * SneakersExponentialRetry::Handler::MINUTE
+      })
+      handler.send(method_name, *[hdr, props, msg, err].compact)
     end
 
+    it 'acknowledge the message' do
+      expect(channel).to receive(:acknowledge).with(hdr.delivery_tag, false)
+      handler.send(method_name, *[hdr, props, msg, err].compact)
+    end
+    it 'logs the retry' do
+      opts[:handler_options] = { logger: logger }
+      expect(logger).to receive(:info) do |&block|
+        msg = block.call
+        expect(msg).to eq("retry_count: #{retry_count + 1}")
+      end
+      handler.send(method_name, *[hdr, props, msg, err].compact)
+    end
+  end
+
+  describe '#timeout(hdr, props, msg)' do
+    include_context "after_processing_task"
+
+    include_examples "retry_error_behaviors", retry_count: 0, method_name: :timeout
+  end
+
+
+  describe '#error(hdr, props, msg, err)' do
+    include_context "after_processing_task"
+    let(:err) { RuntimeError.new }
+
     context "if not retried yet" do
-      include_examples "retry_error_behaviors", retry_count: 0
+      include_examples "retry_error_behaviors", retry_count: 0, method_name: :error
     end
 
     context "if having been retried" do
       before :each do
         props[:headers]['retry-count'] = 3
       end
-      include_examples "retry_error_behaviors", retry_count: 3
+      include_examples "retry_error_behaviors", retry_count: 3, method_name: :error
     end
 
     context "if retry-count reaches the given max_retry_count" do
@@ -144,13 +158,6 @@ describe SneakersExponentialRetry::Handler do
   describe '#reject(hdr, props, msg)' do
     include_examples "delegating_behaviors", {
       method_name: :reject,
-      delegate: :reject
-    }
-  end
-
-  describe '#timeout(hdr, props, msg)' do
-    include_examples "delegating_behaviors", {
-      method_name: :timeout,
       delegate: :reject
     }
   end

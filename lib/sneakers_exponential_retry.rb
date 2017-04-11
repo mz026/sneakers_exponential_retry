@@ -48,10 +48,10 @@ module SneakersExponentialRetry
     end
 
     def error(hdr, props, msg, err)
-      handle_failing_message(hdr, props, msg, err)
+      handle_failing_message(hdr, props, msg)
     end
 
-    def handle_failing_message hdr, props, msg, error
+    def handle_failing_message hdr, props, msg
       retry_count = get_retry_count(props[:headers])
       if retry_count >= @max_retry_count
         reject(hdr, props, msg)
@@ -90,7 +90,7 @@ module SneakersExponentialRetry
     private :expiration_time
 
     def timeout(hdr, props, msg)
-      reject(hdr, props, msg)
+      handle_failing_message(hdr, props, msg)
     end
 
     def noop(hdr, props, msg)
