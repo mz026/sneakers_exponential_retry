@@ -90,7 +90,7 @@ module SneakersExponentialRetry
     private :expiration_time
 
     def timeout(hdr, props, msg)
-      reject(hdr, props, msg)
+      handle_failing_message(hdr, props, msg)
     end
 
     def noop(hdr, props, msg)
